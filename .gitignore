@@ -1,0 +1,39 @@
+# Build directories
+bin/
+obj/
+Debug/
+Release/
+
+# Object files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Code::Blocks specific
+*.cbp.user
+*.layout
+*.depend
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Compiled output
+*.gch
+*.pch
