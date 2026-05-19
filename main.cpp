@@ -197,3 +197,106 @@ void drawMenu() {
     glColor3f(0.7,0.7,0.7);
     text(W/2-130, 150, "Press 1/2/3/4/5 to choose");
 }
+
+// ---------- Draw Help Screen ----------
+void drawHelp() {
+    glColor3f(1,1,0); text(W/2-40, H-120, "HELP", GLUT_BITMAP_TIMES_ROMAN_24);
+    glColor3f(1,1,1);
+    text(100, 450, "Left/Right Arrow or Mouse : Move paddle");
+    text(100, 420, "P : Pause / Resume");
+    text(100, 390, "M : Back to menu");
+    text(100, 360, "ESC : Exit");
+    text(100, 320, "PERKS (catch with paddle):");
+    glColor3f(1,0,0);   text(120, 290, "LIFE  = Extra Life");
+    glColor3f(1,1,0);   text(120, 265, "SPEED = Faster Ball");
+    glColor3f(0,1,0);   text(120, 240, "WIDE  = Wider Paddle");
+    glColor3f(1,0.4,0); text(120, 215, "FIRE  = Fireball (pierce bricks)");
+    glColor3f(0.5,0,0.5); text(120, 190, "DEATH = Lose a life");
+    glColor3f(0.7,0.7,1); text(W/2-100, 100, "Press M for menu");
+}
+
+// ---------- Draw High Score Screen ----------
+void drawHiScore() {
+    char buf[60];
+    glColor3f(1,0.8,0); text(W/2-90, H-150, "HIGH SCORE", GLUT_BITMAP_TIMES_ROMAN_24);
+    sprintf(buf, "BEST: %d", hiScore);
+    glColor3f(1,1,1); text(W/2-60, H/2, buf, GLUT_BITMAP_TIMES_ROMAN_24);
+    glColor3f(0.7,0.7,1); text(W/2-100, 100, "Press M for menu");
+}
+
+// ---------- Draw Pause Screen ----------
+void drawPause() {
+    glColor3f(1,1,0); text(W/2-50, H/2+20, "PAUSED", GLUT_BITMAP_TIMES_ROMAN_24);
+    glColor3f(1,1,1); text(W/2-110, H/2-20, "Press P to Resume, M for Menu");
+}
+
+// ---------- Draw Game Over Screen ----------
+void drawGameOver() {
+    char buf[60];
+    glColor3f(1,0.2,0.2); text(W/2-80, H/2+50, "GAME OVER", GLUT_BITMAP_TIMES_ROMAN_24);
+    sprintf(buf, "Score: %d", score);
+    glColor3f(1,1,1); text(W/2-50, H/2+10, buf, GLUT_BITMAP_TIMES_ROMAN_24);
+    text(W/2-130, H/2-30, "Press R to Restart, M for Menu");
+}
+
+// ---------- Draw Win Screen ----------
+void drawWin() {
+    char buf[60];
+    glColor3f(0.2,1,0.4); text(W/2-100, H/2+60, "LEVEL CLEARED!", GLUT_BITMAP_TIMES_ROMAN_24);
+    sprintf(buf, "Score: %d  Time: %d s", score, gameTime);
+    glColor3f(1,1,1); text(W/2-120, H/2+20, buf, GLUT_BITMAP_TIMES_ROMAN_24);
+    text(W/2-140, H/2-20, "Press N for Next Level, M for Menu");
+}
+
+// ---------- Main Display Function ----------
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    if(state==0) drawMenu();
+    else if(state==5) drawHelp();
+    else if(state==6) drawHiScore();
+    else {
+        drawBorders();
+        drawBricks();
+        drawPaddle();
+        drawBall();
+        drawDrops();
+        drawHUD();
+        if(state==2) drawPause();
+        if(state==3) drawGameOver();
+        if(state==4) drawWin();
+    }
+    glutSwapBuffers();
+}
+
+// ---------- Spawn Drop (when brick breaks) ----------
+void spawnDrop(float x, float y) {
+    if(rand()%100 >= 15) return;
+    for(int i=0;i<10;i++) {
+        if(!drops[i].active) {
+            drops[i].active = 1;
+            drops[i].x = x; drops[i].y = y;
+            int r = rand()%100;
+            if(r < 25)      drops[i].type = 0;
+            else if(r < 45) drops[i].type = 1;
+            else if(r < 70) drops[i].type = 2;
+            else if(r < 85) drops[i].type = 3;
+            else            drops[i].type = 4;
+            return;
+        }
+    }
+}
+
+// ---------- Apply Drop Effect ----------
+void applyDrop(int t) {
+    if(t==0) lives++;
+    else if(t==1) { vx*=1.3; vy*=1.3; }
+    else if(t==2) pw = 180;
+    else if(t==3) fireball = 1;
+    else if(t==4) {
+        lives--;
+        if(lives<=0) {
+            if(score>hiScore) hiScore = score;
+            state = 3;
+        } else resetBall();
+    }
+}
