@@ -300,3 +300,6 @@ void applyDrop(int t) {
         } else resetBall();
     }
 }
+
+//code working kholilmridul
+
