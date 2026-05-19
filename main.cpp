@@ -198,6 +198,9 @@ void drawMenu() {
     text(W/2-130, 150, "Press 1/2/3/4/5 to choose");
 }
 
+code working -shamayel
+
+
 // ---------- Draw Help Screen ----------
 void drawHelp() {
     glColor3f(1,1,0); text(W/2-40, H-120, "HELP", GLUT_BITMAP_TIMES_ROMAN_24);
