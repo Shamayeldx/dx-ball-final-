@@ -19,6 +19,7 @@ Release/
 *.app
 
 # Code::Blocks specific
+*.cbp
 *.cbp.user
 *.layout
 *.depend
