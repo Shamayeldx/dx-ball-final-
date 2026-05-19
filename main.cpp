@@ -306,3 +306,147 @@ void applyDrop(int t) {
 
 //code working kholilmridul
 
+// ---------- Check if All Bricks Cleared ----------
+int allCleared() {
+    for(int i=0;i<ROWS;i++)
+        for(int j=0;j<COLS;j++)
+            if(brick[i][j]) return 0;
+    return 1;
+}
+
+// ---------- Game Update Loop ----------
+void update(int v) {
+    if(state==1) {
+        gameTime = (glutGet(GLUT_ELAPSED_TIME) - startTime) / 1000;
+        bx += vx; by += vy;
+
+        // Wall collision
+        if(bx-br<1) { bx=br+1; vx=-vx; }
+        if(bx+br>W-1) { bx=W-br-1; vx=-vx; }
+        if(by+br>H-70) { by=H-70-br; vy=-vy; }
+
+        // Ball falls below - lose life
+        if(by-br<0) {
+            lives--;
+            if(lives<=0) {
+                if(score>hiScore) hiScore = score;
+                state = 3;
+            } else resetBall();
+        }
+
+        // Paddle collision
+        if(by-br<=py+ph && by-br>=py && bx>=px && bx<=px+pw && vy<0) {
+            vy = -vy;
+            vx = ((bx - px)/pw - 0.5) * 10;
+            by = py + ph + br + 1;
+        }
+
+        // Brick collision
+        for(int i=0;i<ROWS;i++) {
+            for(int j=0;j<COLS;j++) {
+                if(!brick[i][j]) continue;
+                int x1 = 60 + j*68, y1 = 480 - i*25;
+                int x2 = x1+65, y2 = y1+22;
+                if(bx+br>x1 && bx-br<x2 && by+br>y1 && by-br<y2) {
+                    brick[i][j] = 0;
+                    score += 10;
+                    spawnDrop(x1+32, y1);
+                    if(!fireball) vy = -vy;
+                    goto done;
+                }
+            }
+        }
+        done:
+
+        // Update drops
+        for(int i=0;i<10;i++) {
+            if(!drops[i].active) continue;
+            drops[i].y -= 3;
+            if(drops[i].y<0) drops[i].active = 0;
+            else if(drops[i].y<=py+ph && drops[i].x>=px && drops[i].x<=px+pw) {
+                applyDrop(drops[i].type);
+                drops[i].active = 0;
+            }
+        }
+
+        // Win check
+        if(allCleared()) {
+            if(score>hiScore) hiScore = score;
+            state = 4;
+        }
+    }
+    glutPostRedisplay();
+    glutTimerFunc(16, update, 0);
+}
+
+// ---------- Keyboard Input ----------
+void keyboard(unsigned char k, int x, int y) {
+    if(state==0) {
+        if(k=='1') newGame();
+        else if(k=='2' && lives>0) state = 1;
+        else if(k=='3') state = 6;
+        else if(k=='4') state = 5;
+        else if(k=='5' || k==27) exit(0);
+    }
+    else if(state==5 || state==6) { if(k=='m'||k=='M') state = 0; }
+    else if(state==1) {
+        if(k=='p'||k=='P') state = 2;
+        else if(k=='m'||k=='M') state = 0;
+        else if(k==27) exit(0);
+    }
+    else if(state==2) {
+        if(k=='p'||k=='P') state = 1;
+        else if(k=='m'||k=='M') state = 0;
+    }
+    else if(state==3) {
+        if(k=='r'||k=='R') newGame();
+        else if(k=='m'||k=='M') state = 0;
+    }
+    else if(state==4) {
+        if(k=='n'||k=='N') { level++; pw=120; initBricks(); resetBall(); state=1; }
+        else if(k=='m'||k=='M') state = 0;
+    }
+}
+
+// ---------- Arrow Key Input ----------
+void special(int k, int x, int y) {
+    if(state!=1) return;
+    if(k==GLUT_KEY_LEFT) px -= 20;
+    else if(k==GLUT_KEY_RIGHT) px += 20;
+    if(px<1) px = 1;
+    if(px+pw>W-1) px = W-1-pw;
+}
+
+// ---------- Mouse Input ----------
+void mouse(int x, int y) {
+    if(state!=1) return;
+    px = x - pw/2;
+    if(px<1) px = 1;
+    if(px+pw>W-1) px = W-1-pw;
+}
+
+// ---------- Initialize OpenGL ----------
+void init() {
+    glClearColor(0.05, 0.05, 0.15, 1);
+    gluOrtho2D(0, W, 0, H);
+    srand(time(NULL));
+    initBricks();
+}
+
+// ---------- Main Function ----------
+int main(int argc, char **argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(W, H);
+    glutCreateWindow("DX BALL - CSE 426");
+    init();
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutSpecialFunc(special);
+    glutPassiveMotionFunc(mouse);
+    glutMotionFunc(mouse);
+    glutTimerFunc(16, update, 0);
+    glutMainLoop();
+    return 0;
+}
+
